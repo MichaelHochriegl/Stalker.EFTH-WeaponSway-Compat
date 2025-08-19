@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
   upload-archive:
     runs-on: ubuntu-latest
@@ -20,7 +23,8 @@ jobs:
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
 
       - name: Upload archive to release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
+        
         with:
           files: ${{ env.ARCHIVE_NAME }}
           tag_name: ${{ github.event.release.tag_name }}
