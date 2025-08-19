@@ -1,0 +1,28 @@
+name: Create Release Archive
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  upload-archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create archive
+        run: |
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          TAG_NAME=${{ github.event.release.tag_name }}
+          ARCHIVE_NAME="${REPO_NAME}-${TAG_NAME}.zip"
+          git archive --format=zip --output=$ARCHIVE_NAME HEAD
+          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
+
+      - name: Upload archive to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ env.ARCHIVE_NAME }}
+          tag_name: ${{ github.event.release.tag_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
