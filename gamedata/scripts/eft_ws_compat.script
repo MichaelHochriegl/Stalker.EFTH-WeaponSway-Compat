@@ -1,0 +1,304 @@
+-- EFTH Weapon Sway Compat Script
+-- Author: Dr_Cox1911
+
+base_weapon_sway_main_func = zzzz_weapon_sway.main_update
+
+------------------------- mcm stuff from Weapon_Sway ---------------------------
+local weapon_sway_enable = weapon_sway_mcm.get_config("weapon_sway_feature")
+local aim_anm = weapon_sway_mcm.get_config("animation_type")
+local max_effect_power = weapon_sway_mcm.get_config("max_effect_power")
+local sway_keybind = weapon_sway_mcm.get_config("sway_keybind")
+
+local power_stand = weapon_sway_mcm.get_config("power_stand")
+local power_crouch = weapon_sway_mcm.get_config("power_crouch")
+local power_low_crouch = weapon_sway_mcm.get_config("power_low_crouch")
+
+local power_stand_scoped = weapon_sway_mcm.get_config("power_stand_scoped")
+local power_crouch_scoped = weapon_sway_mcm.get_config("power_crouch_scoped")
+local power_low_crouch_scoped = weapon_sway_mcm.get_config("power_low_crouch_scoped")
+
+local weapon_mount_feature = weapon_sway_mcm.get_config("weapon_mount_feature")
+local weapon_mounted_power = weapon_sway_mcm.get_config("weapon_mounted_power")
+local y_axis_mounted_distance = weapon_sway_mcm.get_config("y_axis_mounted_distance")
+
+local weapon_handling_mult = weapon_sway_mcm.get_config("handling_mult")
+
+local weight_factor = weapon_sway_mcm.get_config("weight_factor")
+local max_power_weight = weapon_sway_mcm.get_config("max_power_weight")
+
+local hold_breath_feature = weapon_sway_mcm.get_config("hold_breath_feature")
+local enable_breath_sound = weapon_sway_mcm.get_config("enable_breath_sound")
+local breath_restore_mult = weapon_sway_mcm.get_config("breath_restore_mult")
+local max_hold_breath_time = weapon_sway_mcm.get_config("max_hold_breath_time")
+
+local hold_breath_mult = weapon_sway_mcm.get_config("hold_breath_mult")
+local release_breath_mult = weapon_sway_mcm.get_config("release_breath_mult")
+
+
+
+---------------------------- mcm stuff end -------------------------------------
+
+---------------------------------- mcm stuff  ----------------------------------
+local efth_patch = efth_ws_compat_mcm.get_config("efth_patch")
+local health_excellent_threshold = efth_ws_compat_mcm.get_config("health_excellent_threshold")
+local health_good_threshold = efth_ws_compat_mcm.get_config("health_good_threshold")
+local health_moderate_threshold = efth_ws_compat_mcm.get_config("health_moderate_threshold")
+local health_heavy_threshold = efth_ws_compat_mcm.get_config("health_heavy_threshold")
+
+local sway_excellent_min = efth_ws_compat_mcm.get_config("sway_excellent_min")
+local sway_excellent_multiplier = efth_ws_compat_mcm.get_config("sway_excellent_multiplier")
+local sway_good_base = efth_ws_compat_mcm.get_config("sway_good_base")
+local sway_good_multiplier = efth_ws_compat_mcm.get_config("sway_good_multiplier")
+local sway_moderate_base = efth_ws_compat_mcm.get_config("sway_moderate_base")
+local sway_moderate_multiplier = efth_ws_compat_mcm.get_config("sway_moderate_multiplier")
+local sway_heavy_base = efth_ws_compat_mcm.get_config("sway_heavy_base")
+local sway_heavy_multiplier = efth_ws_compat_mcm.get_config("sway_heavy_multiplier")
+local sway_severe_base = efth_ws_compat_mcm.get_config("sway_severe_base")
+local sway_severe_multiplier = efth_ws_compat_mcm.get_config("sway_severe_multiplier")
+local sway_destroyed_power = efth_ws_compat_mcm.get_config("sway_destroyed_power")
+
+local asymmetry_multiplier_setting = efth_ws_compat_mcm.get_config("asymmetry_multiplier")
+local one_arm_destroyed_mult = efth_ws_compat_mcm.get_config("one_arm_destroyed_mult")
+local both_arms_destroyed_mult = efth_ws_compat_mcm.get_config("both_arms_destroyed_mult")
+
+local weapon_sway_debug = efth_ws_compat_mcm.get_config("debugx")
+---------------------------- mcm stuff end -------------------------------------
+
+------------------------ weapon_sway overrides ---------------------------------
+local tg_act = 0
+function zzzz_weapon_sway.main_update()
+	local tg = time_global()
+	if tg < tg_act then return end
+	tg_act = tg + 250
+
+    if weapon_sway_debug then
+        news_manager.send_tip(db.actor, 
+                        string.format("EFTH Sway Compat: w_enabled=%s zoom=%s efth_patch=%s", 
+                            weapon_sway_enable, zzzz_weapon_sway.zoom_flag, efth_patch), 
+                        0, nil, 2000)
+    end
+
+	if weapon_sway_enable and zzzz_weapon_sway.zoom_flag then
+		if efth_patch and zzz_efth and efth_sway_func then
+		    efth_sway_func()
+		else
+			base_weapon_sway_main_func()
+		end
+	end
+end
+---------------------- weapon_sway overrides end ---------------------------------
+
+--------------------- EFT Health for Gamma compatibility -------------------------
+if efth_patch and zzz_efth then
+    function efth_sway_func()
+        -- Debug output
+        if weapon_sway_debug then
+            news_manager.send_tip(db.actor, "Using EFTH calculation...", 0, nil, 1500)
+        end
+    
+        local wpn = db.actor:active_item()
+        if not (wpn and IsWeapon(wpn)) then return end
+        if (IsMelee(wpn)) then return end
+    
+        local wpn_sec = wpn:section()
+        if not wpn_sec then return end
+    
+        local wpn_scoped = wpn:weapon_is_scope()
+        local handling = utils_ui.prop_handling(wpn, wpn_sec)
+        
+        local efthBody = _G.Body;
+        if not efthBody or not efthBody.limbs then
+            bhs_cam_power = 1.0  -- Default moderate sway
+            return
+        end
+    
+        local body_state = zzzz_weapon_sway.get_body_state()
+        
+        -- Get arm health values
+        local left_arm_hp = efthBody.limbs.arm_left.hp
+        local right_arm_hp = efthBody.limbs.arm_right.hp
+        local left_arm_max = efthBody.limbs.arm_left.hp_max_current
+        local right_arm_max = efthBody.limbs.arm_right.hp_max_current
+        
+        -- Calculate health percentages for each arm
+        local left_arm_percent = (left_arm_max > 0) and (left_arm_hp / left_arm_max) or 0
+        local right_arm_percent = (right_arm_max > 0) and (right_arm_hp / right_arm_max) or 0
+        
+        -- Clamp percentages
+        left_arm_percent = math.max(0, math.min(1, left_arm_percent))
+        right_arm_percent = math.max(0, math.min(1, right_arm_percent))
+        
+        -- Calculate average arm health
+        local avg_arm_health = (left_arm_percent + right_arm_percent) / 2
+        
+        -- Apply gentler non-linear sway curve based on health
+        local base_sway_power
+        
+        if avg_arm_health >= health_excellent_threshold then
+            -- Above excellent threshold: excellent sway
+            base_sway_power = sway_excellent_min + (1.0 - avg_arm_health) * sway_excellent_multiplier
+        elseif avg_arm_health >= health_good_threshold then
+            -- Good health range: good sway
+            base_sway_power = sway_good_base + (health_excellent_threshold - avg_arm_health) * sway_good_multiplier
+        elseif avg_arm_health >= health_moderate_threshold then
+            -- Moderate health range: moderate sway
+            base_sway_power = sway_moderate_base + (health_good_threshold - avg_arm_health) * sway_moderate_multiplier
+        elseif avg_arm_health >= health_heavy_threshold then
+            -- Heavy damage range: heavy sway
+            base_sway_power = sway_heavy_base + (health_moderate_threshold - avg_arm_health) * sway_heavy_multiplier
+        elseif avg_arm_health > 0 then
+            -- Severe damage range: severe sway
+            base_sway_power = sway_severe_base + (health_heavy_threshold - avg_arm_health) * sway_severe_multiplier
+        else
+            -- Destroyed limbs: maximum base sway
+            base_sway_power = sway_destroyed_power
+        end
+
+        
+        -- Apply asymmetric penalty if one arm is much worse than the other
+        local arm_difference = math.abs(left_arm_percent - right_arm_percent)
+        local asymmetry_multiplier = 1.0 + (arm_difference * asymmetry_multiplier_setting)
+
+
+        -- Check for destroyed limbs
+        local destroyed_arms = 0
+        if efthBody.limbs.arm_left:IsDestroyed() then destroyed_arms = destroyed_arms + 1 end
+        if efthBody.limbs.arm_right:IsDestroyed() then destroyed_arms = destroyed_arms + 1 end
+        
+        -- Apply additional multiplier for destroyed limbs
+        local destruction_multiplier = 1.0
+        if destroyed_arms == 1 then
+            destruction_multiplier = one_arm_destroyed_mult
+        elseif destroyed_arms == 2 then
+            destruction_multiplier = both_arms_destroyed_mult
+        end
+        
+        -- Calculate health-based sway power
+        local health_sway_power = base_sway_power * asymmetry_multiplier * destruction_multiplier
+        
+        -- Now apply all the additional multipliers from weapon sway system
+        
+        -- Body state multiplier (crouching/prone reduces sway)
+        local body_mult = zzzz_weapon_sway.get_body_state_power(wpn, wpn_scoped) or 1.0
+        
+        -- Scope multiplier (scoped weapons have less sway)
+        local scope_mult = wpn_scoped and 0.2 or 1.0
+        
+        -- Weapon mounting multiplier (mounted weapons have much less sway)
+        local mount_mult = zzzz_weapon_sway.wpn_mounted() and weapon_mounted_power or 1.0
+        
+        -- Weapon handling multiplier (better handling = less sway)
+        local handling_mult = handling and ((2.5 - 0.02 * handling * 100)^weapon_handling_mult) or 1.0
+        
+        -- Weapon weight multiplier (heavier weapons = more sway)
+        local weight = zzzz_weapon_sway.get_weight_power(wpn_sec) and clamp(zzzz_weapon_sway.get_weight_power(wpn_sec) * weight_factor, 0.01, max_power_weight) or 1.0
+        
+        -- Breath control multiplier (holding breath = less sway, post-breath = more sway)
+        local current_breath_held_for = zzzz_weapon_sway.breath_held_for or 0
+        local breath_mult = zzzz_weapon_sway.holding_breath and hold_breath_mult or (1.0 + current_breath_held_for * release_breath_mult)
+        
+        -- Calculate final camera power
+        bhs_cam_power = health_sway_power * body_mult * scope_mult * mount_mult * handling_mult * weight * breath_mult
+        
+        -- Apply reasonable bounds
+        bhs_cam_power = math.max(0.1, math.min(max_effect_power or 3.5, bhs_cam_power))
+        
+        -- Debug output
+        if weapon_sway_debug then
+            news_manager.send_tip(db.actor, 
+                string.format("EFTH Health: L=%.1f%% R=%.1f%% Avg=%.2f", 
+                    left_arm_percent * 100, right_arm_percent * 100, avg_arm_health), 
+                0, nil, 2000)
+            news_manager.send_tip(db.actor, 
+                string.format("EFTH Mults: Body=%.2f Scope=%.2f Mount=%.2f Handle=%.2f Weight=%.2f Breath=%.2f", 
+                    body_mult, scope_mult, mount_mult, handling_mult, weight, breath_mult), 
+                0, nil, 2000)
+            news_manager.send_tip(db.actor, 
+                string.format("EFTH Final: Base=%.2f Final=%.2f", 
+                    health_sway_power, bhs_cam_power), 
+                0, nil, 2000)
+        end
+    
+        -- Play anim or Change its power
+        if level.check_cam_effector(99215) then
+            level.set_cam_effector_factor(99215, bhs_cam_power)
+        else
+            level.add_cam_effector("weapon_sway\\sway_" .. aim_anm .. ".anm", 99215, true, "", 0, true, bhs_cam_power)
+        end
+    end
+end
+
+function on_option_change()
+	-- Base mod settings
+	efth_patch = efth_ws_compat_mcm.get_config("efth_patch")
+	weapon_sway_debug = efth_ws_compat_mcm.get_config("debugx")
+	
+	-- Health thresholds
+	health_excellent_threshold = efth_ws_compat_mcm.get_config("health_excellent_threshold")
+	health_good_threshold = efth_ws_compat_mcm.get_config("health_good_threshold")
+	health_moderate_threshold = efth_ws_compat_mcm.get_config("health_moderate_threshold")
+	health_heavy_threshold = efth_ws_compat_mcm.get_config("health_heavy_threshold")
+	
+	-- Excellent health sway settings
+	sway_excellent_min = efth_ws_compat_mcm.get_config("sway_excellent_min")
+	sway_excellent_multiplier = efth_ws_compat_mcm.get_config("sway_excellent_multiplier")
+	
+	-- Good health sway settings
+	sway_good_base = efth_ws_compat_mcm.get_config("sway_good_base")
+	sway_good_multiplier = efth_ws_compat_mcm.get_config("sway_good_multiplier")
+	
+	-- Moderate health sway settings
+	sway_moderate_base = efth_ws_compat_mcm.get_config("sway_moderate_base")
+	sway_moderate_multiplier = efth_ws_compat_mcm.get_config("sway_moderate_multiplier")
+	
+	-- Heavy damage sway settings
+	sway_heavy_base = efth_ws_compat_mcm.get_config("sway_heavy_base")
+	sway_heavy_multiplier = efth_ws_compat_mcm.get_config("sway_heavy_multiplier")
+	
+	-- Severe damage sway settings
+	sway_severe_base = efth_ws_compat_mcm.get_config("sway_severe_base")
+	sway_severe_multiplier = efth_ws_compat_mcm.get_config("sway_severe_multiplier")
+	
+	-- Destroyed limbs sway settings
+	sway_destroyed_power = efth_ws_compat_mcm.get_config("sway_destroyed_power")
+	
+	-- Penalty multipliers
+	asymmetry_multiplier_setting = efth_ws_compat_mcm.get_config("asymmetry_multiplier")
+	one_arm_destroyed_mult = efth_ws_compat_mcm.get_config("one_arm_destroyed_mult")
+	both_arms_destroyed_mult = efth_ws_compat_mcm.get_config("both_arms_destroyed_mult")
+	
+	-- Also update weapon sway settings in case they changed
+	weapon_sway_enable = weapon_sway_mcm.get_config("weapon_sway_feature")
+	aim_anm = weapon_sway_mcm.get_config("animation_type")
+	max_effect_power = weapon_sway_mcm.get_config("max_effect_power")
+	sway_keybind = weapon_sway_mcm.get_config("sway_keybind")
+	
+	power_stand = weapon_sway_mcm.get_config("power_stand")
+	power_crouch = weapon_sway_mcm.get_config("power_crouch")
+	power_low_crouch = weapon_sway_mcm.get_config("power_low_crouch")
+	
+	power_stand_scoped = weapon_sway_mcm.get_config("power_stand_scoped")
+	power_crouch_scoped = weapon_sway_mcm.get_config("power_crouch_scoped")
+	power_low_crouch_scoped = weapon_sway_mcm.get_config("power_low_crouch_scoped")
+	
+	weapon_mount_feature = weapon_sway_mcm.get_config("weapon_mount_feature")
+	weapon_mounted_power = weapon_sway_mcm.get_config("weapon_mounted_power")
+	y_axis_mounted_distance = weapon_sway_mcm.get_config("y_axis_mounted_distance")
+	
+	weapon_handling_mult = weapon_sway_mcm.get_config("handling_mult")
+	
+	weight_factor = weapon_sway_mcm.get_config("weight_factor")
+	max_power_weight = weapon_sway_mcm.get_config("max_power_weight")
+	
+	hold_breath_feature = weapon_sway_mcm.get_config("hold_breath_feature")
+	enable_breath_sound = weapon_sway_mcm.get_config("enable_breath_sound")
+	breath_restore_mult = weapon_sway_mcm.get_config("breath_restore_mult")
+	max_hold_breath_time = weapon_sway_mcm.get_config("max_hold_breath_time")
+	
+	hold_breath_mult = weapon_sway_mcm.get_config("hold_breath_mult")
+	release_breath_mult = weapon_sway_mcm.get_config("release_breath_mult")
+end
+
+function on_game_start()
+	RegisterScriptCallback("on_option_change", on_option_change)
+end

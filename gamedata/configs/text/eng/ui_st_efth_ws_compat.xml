@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<!-- 
+	EFTH Weapon Sway Compatibility MCM
+-->
+<string_table>
+
+    <!-- Main Menu -->
+    <string id="ui_mcm_menu_efth_ws_compat">
+        <text>EFTH Weapon Sway</text>
+    </string>
+
+    <!-- Main Patch Setting -->
+    <string id="ui_mcm_efth_ws_compat_efth_patch">
+        <text>Enable EFTH Integration</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_efth_patch_desc">
+        <text>Enable weapon sway calculations based on arm health from EFT Health System. Requires both EFTH and Weapon Sway mods to be installed.</text>
+    </string>
+
+    <!-- Health Thresholds -->
+    <string id="ui_mcm_efth_ws_compat_health_excellent_threshold">
+        <text>Excellent Health Threshold</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_health_excellent_threshold_desc">
+        <text>Health percentage threshold for excellent condition (minimal sway). \n \nDefault: 0.90 (90%)</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_health_good_threshold">
+        <text>Good Health Threshold</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_health_good_threshold_desc">
+        <text>Health percentage threshold for good condition (low sway). \n \nDefault: 0.70 (70%)</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_health_moderate_threshold">
+        <text>Moderate Health Threshold</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_health_moderate_threshold_desc">
+        <text>Health percentage threshold for moderate condition (medium sway). \n \nDefault: 0.50 (50%)</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_health_heavy_threshold">
+        <text>Heavy Damage Threshold</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_health_heavy_threshold_desc">
+        <text>Health percentage threshold for heavy damage condition (high sway). \n \nDefault: 0.30 (30%)</text>
+    </string>
+
+    <!-- Excellent Health Settings -->
+    <string id="ui_mcm_efth_ws_compat_sway_excellent_min">
+        <text>Excellent Health - Minimum Sway</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_excellent_min_desc">
+        <text>Base sway power for excellent health condition (90%+ arm health). \n \nDefault: 0.2</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_sway_excellent_multiplier">
+        <text>Excellent Health - Sway Multiplier</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_excellent_multiplier_desc">
+        <text>Multiplier applied as health decreases within excellent range. Higher values = more sway as health drops. \n \nDefault: 0.5</text>
+    </string>
+
+    <!-- Good Health Settings -->
+    <string id="ui_mcm_efth_ws_compat_sway_good_base">
+        <text>Good Health - Base Sway</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_good_base_desc">
+        <text>Base sway power for good health condition (70-90% arm health). \n \nDefault: 0.25</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_sway_good_multiplier">
+        <text>Good Health - Sway Multiplier</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_good_multiplier_desc">
+        <text>Multiplier applied as health decreases within good range. Higher values = steeper sway increase. \n \nDefault: 1.75</text>
+    </string>
+
+    <!-- Moderate Health Settings -->
+    <string id="ui_mcm_efth_ws_compat_sway_moderate_base">
+        <text>Moderate Health - Base Sway</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_moderate_base_desc">
+        <text>Base sway power for moderate health condition (50-70% arm health). \n \nDefault: 0.6</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_sway_moderate_multiplier">
+        <text>Moderate Health - Sway Multiplier</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_moderate_multiplier_desc">
+        <text>Multiplier applied as health decreases within moderate range. Higher values = steeper sway increase. \n \nDefault: 3.0</text>
+    </string>
+
+    <!-- Heavy Damage Settings -->
+    <string id="ui_mcm_efth_ws_compat_sway_heavy_base">
+        <text>Heavy Damage - Base Sway</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_heavy_base_desc">
+        <text>Base sway power for heavy damage condition (30-50% arm health). \n \nDefault: 1.2</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_sway_heavy_multiplier">
+        <text>Heavy Damage - Sway Multiplier</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_heavy_multiplier_desc">
+        <text>Multiplier applied as health decreases within heavy damage range. Higher values = steeper sway increase. \n \nDefault: 4.0</text>
+    </string>
+
+    <!-- Severe Damage Settings -->
+    <string id="ui_mcm_efth_ws_compat_sway_severe_base">
+        <text>Severe Damage - Base Sway</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_severe_base_desc">
+        <text>Base sway power for severe damage condition (1-30% arm health). \n \nDefault: 2.0</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_sway_severe_multiplier">
+        <text>Severe Damage - Sway Multiplier</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_severe_multiplier_desc">
+        <text>Multiplier applied as health decreases within severe damage range. Higher values = steeper sway increase. \n \nDefault: 3.33</text>
+    </string>
+
+    <!-- Destroyed Limbs Settings -->
+    <string id="ui_mcm_efth_ws_compat_sway_destroyed_power">
+        <text>Destroyed Arms - Sway Power</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_sway_destroyed_power_desc">
+        <text>Maximum sway power when both arms are at 0% health (destroyed). \n \nDefault: 3.5</text>
+    </string>
+
+    <!-- Penalty Multipliers -->
+    <string id="ui_mcm_efth_ws_compat_asymmetry_multiplier">
+        <text>Arm Asymmetry Penalty</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_asymmetry_multiplier_desc">
+        <text>Additional sway penalty when one arm is significantly more damaged than the other. Higher values = more penalty for uneven arm damage. \n \nDefault: 0.3 (up to 30% more sway)</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_one_arm_destroyed_mult">
+        <text>One Destroyed Arm Multiplier</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_one_arm_destroyed_mult_desc">
+        <text>Sway multiplier applied when one arm is destroyed (0% health). \n \nDefault: 1.2 (20% more sway)</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_both_arms_destroyed_mult">
+        <text>Both Destroyed Arms Multiplier</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_both_arms_destroyed_mult_desc">
+        <text>Sway multiplier applied when both arms are destroyed (0% health). \n \nDefault: 1.4 (40% more sway)</text>
+    </string>
+
+    <!-- Debug -->
+    <string id="ui_mcm_efth_ws_compat_debugx">
+        <text>Debug Mode</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_debugx_desc">
+        <text>Enable debug messages showing arm health percentages, sway calculations, and multiplier values. Useful for testing and fine-tuning settings.</text>
+    </string>
+
+</string_table>

@@ -1,0 +1,91 @@
+-- If you don't use MCM, change your defaults from here.
+local defaults = {
+    -- Base mod settings
+	["efth_patch"] = true,
+	["debugx"] = false,
+	
+	-- Health thresholds (percentages as decimals)
+    ["health_excellent_threshold"] = 0.9,
+    ["health_good_threshold"] = 0.7,
+    ["health_moderate_threshold"] = 0.5,
+    ["health_heavy_threshold"] = 0.3,
+    
+    -- Base sway power values for different health states
+    ["sway_excellent_min"] = 0.2,
+    ["sway_excellent_multiplier"] = 0.5,
+    ["sway_good_base"] = 0.25,
+    ["sway_good_multiplier"] = 1.75,
+    ["sway_moderate_base"] = 0.6,
+    ["sway_moderate_multiplier"] = 3.0,
+    ["sway_heavy_base"] = 1.2,
+    ["sway_heavy_multiplier"] = 4.0,
+    ["sway_severe_base"] = 2.0,
+    ["sway_severe_multiplier"] = 3.33,
+    ["sway_destroyed_power"] = 3.5,
+    
+    -- Asymmetry and destruction penalties
+    ["asymmetry_multiplier"] = 0.3,
+    ["one_arm_destroyed_mult"] = 1.2,
+    ["both_arms_destroyed_mult"] = 1.4,
+
+}
+
+function get_config(key)
+	if ui_mcm then return ui_mcm.get("efth_ws_compat/"..key) else return defaults[key] end
+end
+
+function on_mcm_load()
+	op = { id= "efth_ws_compat",sh=true ,gr={
+			{id = "efth_patch", type = "check", val = 1, def = true},
+			{id="divider", type="line" },
+            
+            -- Health Thresholds Section
+            {id = "health_excellent_threshold", type = "track", val = 2, min=0.8, max=1.0, step=0.01, def = 0.9},
+            {id = "health_good_threshold", type = "track", val = 2, min=0.6, max=0.9, step=0.01, def = 0.7},
+            {id = "health_moderate_threshold", type = "track", val = 2, min=0.4, max=0.7, step=0.01, def = 0.5},
+            {id = "health_heavy_threshold", type = "track", val = 2, min=0.2, max=0.5, step=0.01, def = 0.3},
+            {id="divider", type="line" },
+            
+            -- Excellent Health (90%+) Sway Settings
+            {id = "sway_excellent_min", type = "track", val = 2, min=0.1, max=0.5, step=0.01, def = 0.2},
+            {id = "sway_excellent_multiplier", type = "track", val = 2, min=0.1, max=2.0, step=0.1, def = 0.5},
+            {id="divider", type="line" },
+            
+            -- Good Health (70-90%) Sway Settings
+            {id = "sway_good_base", type = "track", val = 2, min=0.1, max=1.0, step=0.01, def = 0.25},
+            {id = "sway_good_multiplier", type = "track", val = 2, min=0.5, max=5.0, step=0.25, def = 1.75},
+            {id="divider", type="line" },
+            
+            -- Moderate Health (50-70%) Sway Settings
+            {id = "sway_moderate_base", type = "track", val = 2, min=0.3, max=1.5, step=0.1, def = 0.6},
+            {id = "sway_moderate_multiplier", type = "track", val = 2, min=1.0, max=6.0, step=0.5, def = 3.0},
+            {id="divider", type="line" },
+            
+            -- Heavy Damage (30-50%) Sway Settings
+            {id = "sway_heavy_base", type = "track", val = 2, min=0.5, max=2.5, step=0.1, def = 1.2},
+            {id = "sway_heavy_multiplier", type = "track", val = 2, min=2.0, max=8.0, step=0.5, def = 4.0},
+            {id="divider", type="line" },
+            
+            -- Severe Damage (1-30%) Sway Settings
+            {id = "sway_severe_base", type = "track", val = 2, min=1.0, max=4.0, step=0.1, def = 2.0},
+            {id = "sway_severe_multiplier", type = "track", val = 2, min=2.0, max=8.0, step=0.33, def = 3.33},
+            {id="divider", type="line" },
+            
+            -- Destroyed Limbs Sway Settings
+            {id = "sway_destroyed_power", type = "track", val = 2, min=2.0, max=6.0, step=0.1, def = 3.5},
+            {id="divider", type="line" },
+            
+            -- Penalty Multipliers
+            {id = "asymmetry_multiplier", type = "track", val = 2, min=0.0, max=1.0, step=0.05, def = 0.3},
+            {id = "one_arm_destroyed_mult", type = "track", val = 2, min=1.0, max=2.0, step=0.05, def = 1.2},
+            {id = "both_arms_destroyed_mult", type = "track", val = 2, min=1.0, max=2.5, step=0.05, def = 1.4},
+
+            -- Debug Stuff
+			{id="divider", type="line" },
+			{id = "debugx", type = "check", val = 1, def = false},
+
+		}
+	}
+
+	return op
+end
