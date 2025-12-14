@@ -34,8 +34,6 @@ local max_hold_breath_time = weapon_sway_mcm.get_config("max_hold_breath_time")
 local hold_breath_mult = weapon_sway_mcm.get_config("hold_breath_mult")
 local release_breath_mult = weapon_sway_mcm.get_config("release_breath_mult")
 
-
-
 ---------------------------- mcm stuff end -------------------------------------
 
 ---------------------------------- mcm stuff  ----------------------------------
@@ -60,6 +58,13 @@ local sway_destroyed_power = efth_ws_compat_mcm.get_config("sway_destroyed_power
 local asymmetry_multiplier_setting = efth_ws_compat_mcm.get_config("asymmetry_multiplier")
 local one_arm_destroyed_mult = efth_ws_compat_mcm.get_config("one_arm_destroyed_mult")
 local both_arms_destroyed_mult = efth_ws_compat_mcm.get_config("both_arms_destroyed_mult")
+
+-- Fracture sway multipliers (EFTH)
+local efth_one_arm_fracture_mult = efth_ws_compat_mcm.get_config("one_arm_fracture_mult")
+local efth_both_arms_fracture_mult = efth_ws_compat_mcm.get_config("both_arms_fracture_mult")
+
+-- Painkiller sway reduction (EFTH)
+local efth_painkiller_sway_mult = efth_ws_compat_mcm.get_config("painkiller_sway_mult")
 
 local weapon_sway_debug = efth_ws_compat_mcm.get_config("debugx")
 ---------------------------- mcm stuff end -------------------------------------
@@ -173,8 +178,31 @@ if efth_patch and zzz_efth then
             destruction_multiplier = both_arms_destroyed_mult
         end
         
+        -- EFTH fracture: increase sway if one/both arms have fractures
+        local left_fractured = efthBody.limbs.arm_left and efthBody.limbs.arm_left.HasBuff and efthBody.limbs.arm_left:HasBuff(CBuffFracture)
+        local right_fractured = efthBody.limbs.arm_right and efthBody.limbs.arm_right.HasBuff and efthBody.limbs.arm_right:HasBuff(CBuffFracture)
+        
+        local fracture_count = 0
+        if left_fractured then fracture_count = fracture_count + 1 end
+        if right_fractured then fracture_count = fracture_count + 1 end
+        
+        local fracture_multiplier = 1.0
+        
+        if fracture_count == 1 then
+            fracture_multiplier = efth_one_arm_fracture_mult
+        elseif fracture_count == 2 then
+            fracture_multiplier = efth_both_arms_fracture_mult
+        end
+        
+        -- EFTH painkiller: reduce sway while active
+        -- (CBuffPainkiller.ACTIVE is > 0 when the painkiller buff is running)
+        local painkiller_multiplier = 1.0
+        if CBuffPainkiller and (CBuffPainkiller.ACTIVE or 0) > 0 then
+            painkiller_multiplier = efth_painkiller_sway_mult
+        end
+        
         -- Calculate health-based sway power
-        local health_sway_power = base_sway_power * asymmetry_multiplier * destruction_multiplier
+        local health_sway_power = base_sway_power * asymmetry_multiplier * destruction_multiplier * fracture_multiplier * painkiller_multiplier
         
         -- Now apply all the additional multipliers from weapon sway system
         

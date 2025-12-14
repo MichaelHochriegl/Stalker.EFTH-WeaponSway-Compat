@@ -152,6 +152,28 @@
         <text>Sway multiplier applied when both arms are destroyed (0% health). \n \nDefault: 1.4 (40% more sway)</text>
     </string>
 
+    <string id="ui_mcm_efth_ws_compat_one_arm_fracture_mult">
+        <text>One Arm Fractured Multiplier</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_one_arm_fracture_mult_desc">
+        <text>Sway multiplier applied when one arm has a fracture. \n \nDefault: 1.15 (15% more sway)</text>
+    </string>
+
+    <string id="ui_mcm_efth_ws_compat_both_arms_fracture_mult">
+        <text>Both Arms Fractured Multiplier</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_both_arms_fracture_mult_desc">
+        <text>Sway multiplier applied when both arms have a fracture. \n \nDefault: 1.30 (30% more sway)</text>
+    </string>
+    
+    <!-- Painkiller Multipliers -->
+    <string id="ui_mcm_efth_ws_compat_painkiller_sway_mult">
+        <text>Painkiller Multiplier</text>
+    </string>
+    <string id="ui_mcm_efth_ws_compat_painkiller_sway_mult_desc">
+        <text>Multiplier that is applied when a Painkiller effect is active. Higher values = less sway reduction. \n \nDefault: 0.25 (sway reduced by 75%)</text>
+    </string>
+
     <!-- Debug -->
     <string id="ui_mcm_efth_ws_compat_debugx">
         <text>Debug Mode</text>
