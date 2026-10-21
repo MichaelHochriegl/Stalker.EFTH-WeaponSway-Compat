@@ -1,109 +1,77 @@
 # EFTH Weapon Sway Compatibility
 
-A compatibility mod that integrates **EFT Health System (EFTH)** with **Weapon Sway** to provide realistic weapon handling penalties based on arm health status.
+**Hurt arms. Unsteady aim. A reason to patch yourself up.**
 
-## 🎯 Features
+A compatibility addon for **S.T.A.L.K.E.R. Anomaly / G.A.M.M.A.** that connects [EFT Health System (EFTH)](https://discord.com/channels/456765861953536020/1248756352881266772) with [Weapon Sway](https://www.moddb.com/mods/stalker-anomaly/addons/weapon-sway). Your arm injuries affect how steadily you can aim, and treatment helps you get back on target.
 
-- **Dynamic Weapon Sway**: Weapon sway intensity changes based on your arm health
-- **Realistic Health Penalties**: Injured arms affect weapon stability realistically
-- **Asymmetry Penalties**: Different damage levels between arms create additional sway
-- **Destroyed Limb Support**: Severe penalties when arms are completely destroyed
-- **Fully Configurable**: Extensive MCM options to customize all aspects
+## What changes in game?
 
-## 📋 Requirements
+- **Wounds affect your aim.** Small scratches get some leeway; serious injuries make holding a steady sight picture harder.
+- **Destroyed and fractured arms carry extra penalties.** Both arms contribute, so injuring both makes things worse.
+- **Recovery matters.** Surgery gets an arm working again, but healing and recovering its maximum HP gradually restore your stability.
+- **Painkillers offer some relief.** They reduce the extra penalties from destroyed arms and fractures. Wounds and recovery still affect your aim.
+- **Changes ease in and out.** Sway adjusts gradually as you take damage or recover.
 
-### Essential
-- **S.T.A.L.K.E.R. Anomaly** (1.5.3)
-- **[EFT Health System (EFTH)](https://discord.com/channels/456765861953536020/1248756352881266772)** by vegeta1k95, Lizzardman, Lasie, Fabio Conte, Joe, Joker Burger, MrShersh
-- **[Weapon Sway](https://www.moddb.com/mods/stalker-anomaly/addons/weapon-sway)** by bvcx
-- **[MCM (Mod Configuration Menu)](https://www.moddb.com/mods/stalker-anomaly/addons/anomaly-mod-configuration-menu)** by ravenascendant
-- **[Modded executable](https://github.com/themrdemonized/xray-monolith)** by themrdemonized
+With healthy arms, Weapon Sway behaves as usual. Its weapon handling, stance, mounting, and breath-holding features still do their job.
 
-## 🚀 Installation
+## What you need
 
-### Mod Organizer 2 (Recommended)
-1. Download the latest release
-2. Install through MO2's "Install Mod" feature
-3. Ensure load order: `EFTH` → `Weapon Sway` → `EFTH Weapon Sway Compatibility`
-4. Launch the game and configure via MCM
+- **S.T.A.L.K.E.R. Anomaly / G.A.M.M.A.**
+- **[EFT Health System](https://discord.com/channels/456765861953536020/1248756352881266772)**
+- **[Weapon Sway](https://www.moddb.com/mods/stalker-anomaly/addons/weapon-sway)** — integration targets version 1.11
+- **[Mod Configuration Menu (MCM)](https://www.moddb.com/mods/stalker-anomaly/addons/anomaly-mod-configuration-menu)**
+- **[Modded X-Ray executable](https://github.com/themrdemonized/xray-monolith)**
 
-### Manual Installation
-1. Extract the archive
-2. Copy the `gamedata` folder to your Anomaly installation directory
-3. Merge folders when prompted
-4. Launch the game
+## Installation
 
-## ⚙️ Configuration
+1. Install the addon through **Mod Organizer 2**.
+2. Place it **after EFTH and Weapon Sway** in MO2's left pane so its files win any conflicts.
+3. In Weapon Sway's settings, make sure **Enable Weapon Sway** is on. Disable its **BHS integration** when using EFTH as your injury system.
+4. Open **MCM → EFTH Weapon Sway**, leave **Enable EFTH integration** on, and choose a preset.
 
-Access settings through **MCM → EFTH Weapon Sway**
+Existing saves need no migration. When upgrading from an older build, revisit MCM: settings from the old health-tier system are no longer used.
 
-### Health Thresholds
-Configure when different sway penalties activate:
-- **Excellent Health**: 90%+ arm health (minimal sway)
-- **Good Health**: 70-90% arm health (light sway increase)
-- **Moderate Health**: 50-70% arm health (moderate sway)
-- **Heavy Damage**: 30-50% arm health (significant sway)
-- **Severe Damage**: 1-30% arm health (severe sway penalties)
+## Make it feel right
 
-### Sway Power Settings
-Fine-tune sway intensity for each health range:
-- **Base Power**: Starting sway value for each health tier
-- **Multipliers**: How quickly sway increases as health decreases
+Start with **Balanced**, then adjust to taste:
 
-### Penalty Systems
-- **Asymmetry Penalty**: Extra sway when one arm is much more damaged
-- **Destroyed Limb Multipliers**: Additional penalties for destroyed arms
+| Preset | What to expect |
+| --- | --- |
+| **Relaxed** | Gentler injury penalties and more painkiller relief. |
+| **Balanced** *(default)* | Noticeable consequences for injuries, with room for treatment to help. |
+| **Hardcore** | Stronger penalties and less painkiller relief. |
+| **Custom** | Set your own damage tolerance, injury penalties, painkiller relief, and sway limit. |
 
-## 🎮 How It Works
+**Overall injury strength** adjusts the added penalty from 0–200% with every preset. **Smooth transitions** controls whether changes ease in and out. Select **Custom** to use the advanced penalty sliders; those sliders do not override a named preset.
 
-### Health-Based Sway Calculation
-The mod calculates weapon sway based on:
+For a sense of scale, these are approximate injury multipliers with Balanced at its default strength:
 
-1. **Average Arm Health**: Takes the mean HP of both arms
-2. **Health Tier Assignment**: Determines which sway category applies
-3. **Progressive Scaling**: Sway increases smoothly within each tier
-4. **Asymmetry Check**: Adds penalties for uneven arm damage
-5. **Destruction Bonuses**: Severe penalties for destroyed limbs
+| Arm condition | Injury multiplier |
+| --- | --- |
+| Both healthy | 1.00× |
+| One at half HP, the other healthy | 1.55× |
+| Both at half HP | 2.11× |
+| One destroyed, the other healthy | 3.25× |
+| Both destroyed | 5.50× |
 
-### Example Scenarios
-- **100% arm health**: Minimal sway (0.2 power)
-- **75% arm health**: Light sway increase (0.4 power)
-- **45% arm health**: Moderate sway (1.0 power)
-- **15% arm health**: Heavy sway (2.5 power)
-- **One destroyed arm**: +20% sway penalty
-- **Both destroyed arms**: +40% sway penalty
+Weapon Sway applies its own final limit, so the visible effect can level off before these multipliers do.
 
-## 🔧 Compatibility
+## Troubleshooting
 
-### Known Compatible Mods
-- G.A.M.M.A
+**No added sway when injured?** Check that both mods are installed, Weapon Sway is enabled, and **Enable EFTH integration** is on. Check MO2's conflict winners and disable Weapon Sway's BHS integration.
 
-## 🐛 Troubleshooting
+**Advanced settings seem to do nothing?** Select **Custom** first. If you used an early test build, your saved **Maximum health multiplier** may still be limited to 3.0; raise it to try the expanded range.
 
-### Common Issues
+**More injury strength makes no visible difference?** Check this addon's **Maximum health multiplier** and Weapon Sway's **Maximum Effect Power**. Either limit can stop sway increasing. A low health multiplier limit can also hide the benefit of painkillers.
 
-**Q: Weapon sway not working**
-- Ensure EFTH patch is enabled in MCM
-- Verify both EFTH and Weapon Sway mods are installed
-- Ensure Weapon Sway is enabled in MCM
+**Want to see what the addon is reading?** Open the engine's ImGui overlay and select **Mods → EFTH Weapon Sway Debug**. The read-only window shows arm health, injuries, painkiller status, and the calculated modifiers. Aim to refresh the sway snapshot. The window starts closed whenever you load a game or save.
 
-**Q: Settings not applying**
-- MCM changes apply in real-time
-- Try toggling debug mode to verify calculations
+Turning off **Enable EFTH integration** restores Weapon Sway's normal calculation. The addon also falls back to that calculation if EFTH health data is missing or invalid.
 
-### Debug Mode
-Enable debug mode in MCM to see:
-- Current arm health percentages
-- Applied sway multipliers
-- Final sway calculations
+## Credits
 
-## 🤝 Credits
-
-- **Dr_Cox1911**: Mod development and integration
-- **vegeta1k95, Lizzardman, Lasie, Fabio Conte, Joe, Joker Burger, MrShersh**: EFT Health System
-- **bvcx**: Original Weapon Sway mod
-- **S.T.A.L.K.E.R. Modding Community**: Support and feedback
-
----
-
-*Made with ❤️ for the S.T.A.L.K.E.R. community*
+- **Dr_Cox1911** — addon development and integration
+- **vegeta1k95, Lizzardman, Lasie, Fabio Conte, Joe, Joker Burger, MrShersh** — EFT Health System
+- **bvcx** — Weapon Sway
+- **ravenascendant** — MCM
+- **themrdemonized** — modded X-Ray executable
