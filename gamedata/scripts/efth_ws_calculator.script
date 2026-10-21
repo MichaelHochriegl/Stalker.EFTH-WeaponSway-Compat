@@ -1,0 +1,45 @@
+-- Pure calculator: input is normalized arm tables and effective settings.
+local function clamp(value, lower, upper)
+    return math.max(lower, math.min(upper, value))
+end
+
+local function safe(value, fallback)
+    if type(value) ~= "number" or value ~= value or value == math.huge or value == -math.huge then
+        return fallback
+    end
+    return value
+end
+
+local function penalty(arm, settings, painkiller_factor)
+    local grace = clamp(safe(settings.damage_grace, 0), 0, 0.99)
+    local damage = clamp(1 - safe(arm.health, 1), 0, 1)
+    local t = clamp((damage - grace) / (1 - grace), 0, 1)
+    local severity = t * t * (3 - 2 * t)
+    local acute = severity * math.max(0, safe(settings.acute_strength, 0))
+    local recovery = clamp(safe(arm.recovery, 0), 0, 1) * math.max(0, safe(settings.recovery_strength, 0))
+    local destroyed_base = arm.destroyed and math.max(0, safe(settings.destroyed_strength, 0)) or 0
+    local fracture_base = arm.fractured and math.max(0, safe(settings.fracture_strength, 0)) or 0
+    local destroyed = destroyed_base * painkiller_factor
+    local fracture = fracture_base * painkiller_factor
+    return { severity = severity, acute = acute, recovery = recovery,
+        destroyed = destroyed, fracture = fracture,
+        painkiller_saved = destroyed_base + fracture_base - destroyed - fracture,
+        total = acute + recovery + destroyed + fracture }
+end
+
+function calculate(left, right, settings, painkiller_active)
+    settings = settings or {}
+    if not left or not right or settings.enabled == false then
+        return { multiplier = 1, combined = 0 }
+    end
+    local relief = painkiller_active and clamp(safe(settings.painkiller_relief, 0), 0, 1) or 0
+    local factor = 1 - relief
+    local l, r = penalty(left, settings, factor), penalty(right, settings, factor)
+    local combined = (l.total + r.total) / 2
+    local strength = clamp(safe(settings.overall_strength, 1), 0, 2)
+    local cap = math.max(1, safe(settings.max_multiplier, 1))
+    return { left = l, right = r, combined = combined,
+        painkiller_active = painkiller_active == true, painkiller_relief = relief,
+        painkiller_saved = (l.painkiller_saved + r.painkiller_saved) / 2,
+        multiplier = clamp(1 + combined * strength, 1, cap) }
+end
