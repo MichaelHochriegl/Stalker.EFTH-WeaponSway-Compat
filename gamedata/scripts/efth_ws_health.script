@@ -1,0 +1,35 @@
+-- Normalize EFTH limb state. No cached body reference: saves create a new Body.
+local function valid_number(value)
+    return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
+end
+
+local function read_limb(limb)
+    if not limb then return nil end
+    local hp, current_max, original_max = limb.hp, limb.hp_max_current, limb.hp_max
+    if not valid_number(hp) or not valid_number(current_max) or not valid_number(original_max)
+        or current_max <= 0 or original_max <= 0 then return nil end
+
+    current_max = math.min(current_max, original_max)
+    hp = math.max(0, math.min(hp, current_max))
+    local destroyed = limb.IsDestroyed and limb:IsDestroyed() or hp == 0
+    local fractured = _G.CBuffFracture and limb.HasBuff and limb:HasBuff(CBuffFracture) or false
+    return {
+        hp = hp, hp_max_current = current_max, hp_max = original_max,
+        health = hp / current_max, recovery = 1 - current_max / original_max,
+        destroyed = destroyed and true or false, fractured = fractured and true or false,
+    }
+end
+
+function read_arms()
+    local body = _G.Body
+    if not body or not body.limbs then return nil end
+    return read_limb(body.limbs.arm_left), read_limb(body.limbs.arm_right)
+end
+
+function painkiller_active()
+    local cls = _G.CBuffPainkiller
+    if not _G.Body or not cls or type(cls.ACTIVE) ~= "number" then return nil end
+    -- EFTH gives each item-specific painkiller buff its section as an ID.
+    -- Body:HasBuff(cls) without that ID misses it; EFTH itself uses ACTIVE.
+    return cls.ACTIVE > 0
+end

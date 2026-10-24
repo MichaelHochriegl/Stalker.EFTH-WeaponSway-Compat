@@ -1,0 +1,118 @@
+-- Read-only ImGui view. The engine's ImGui.Groups.Main renders only with the overlay open.
+local registered = false
+local visible = false
+
+local function fmt(value)
+    if type(value) ~= "number" then return "unavailable" end
+    return string.format("%.3f", value)
+end
+
+local function bool(value)
+    if value == nil then return "unavailable" end
+    return value and "yes" or "no"
+end
+
+local function sway_state(sway, method)
+    if not sway or not sway[method] or not db or not db.actor then return nil end
+    local ok, value = pcall(sway[method])
+    if ok then return value end
+    return nil
+end
+
+local function arm(label, data)
+    if not data then
+        ImGui.Text(label .. ": unavailable")
+        return
+    end
+    ImGui.Text(label .. string.format(": %.1f / %.1f HP (original %.1f)", data.hp, data.hp_max_current, data.hp_max))
+    ImGui.ProgressBar(data.health, vector2():set(220, 14), string.format("%.0f%% current health", data.health * 100))
+    ImGui.Text(string.format("Recovery impairment: %.1f%%", data.recovery * 100))
+    ImGui.Text("Destroyed: " .. bool(data.destroyed) .. " | Fractured: " .. bool(data.fractured))
+end
+
+local function penalties(label, data)
+    if not data then return end
+    ImGui.Text(string.format("%s: acute %.3f | recovery %.3f | destroyed %.3f | fracture %.3f | total %.3f",
+        label, data.acute, data.recovery, data.destroyed, data.fracture, data.total))
+end
+
+local function render_window()
+    local opened, still_visible = ImGui.Begin("EFTH Weapon Sway Debug", visible, 0)
+    visible = still_visible
+    if opened then
+        local data = eft_ws_compat and eft_ws_compat.get_telemetry and eft_ws_compat.get_telemetry() or nil
+        local settings = efth_ws_compat_mcm.get_settings()
+        local live_painkiller
+        if efth_ws_health and efth_ws_health.painkiller_active then
+            live_painkiller = efth_ws_health.painkiller_active()
+        end
+        ImGui.Text("EFTH painkiller active now: " .. bool(live_painkiller))
+        if not data or not data.result then ImGui.Text("Aim a weapon to collect a health snapshot") end
+        if data and data.time and time_global and time_global() - data.time > 1000 then
+            ImGui.Text("Last calculation is older than one second")
+        end
+        if ImGui.CollapsingHeader("Arm health", 0) then
+            arm("Left arm", data and data.left)
+            arm("Right arm", data and data.right)
+        end
+        if ImGui.CollapsingHeader("Calculated penalties", 0) then
+            local result = data and data.result
+            penalties("Left", result and result.left)
+            penalties("Right", result and result.right)
+            ImGui.Text("Combined penalty: " .. fmt(result and result.combined))
+            ImGui.Text("Painkiller at last sway calculation: " .. bool(result and result.painkiller_active))
+            ImGui.Text("Painkiller relief: " .. fmt(result and result.painkiller_relief))
+            ImGui.Text("Combined penalty relieved (before overall strength): " .. fmt(result and result.painkiller_saved))
+            ImGui.Text("Raw multiplier: " .. fmt(result and result.multiplier))
+            ImGui.Text("Smoothed multiplier: " .. fmt(data and data.smoothed))
+            ImGui.Text("Configured maximum: " .. fmt(settings.max_multiplier))
+        end
+        if ImGui.CollapsingHeader("Weapon Sway integration", 0) then
+            local sway = _G.zzzz_weapon_sway
+            local enabled = weapon_sway_mcm and weapon_sway_mcm.get_config("weapon_sway_feature")
+            local sway_cap = weapon_sway_mcm and weapon_sway_mcm.get_config("max_effect_power")
+            local aiming = sway and sway.zoom_flag
+            local active = settings.enabled and enabled and aiming and data and data.result ~= nil
+            ImGui.Text("Weapon Sway enabled: " .. bool(enabled))
+            ImGui.Text("Weapon Sway camera power cap: " .. fmt(sway_cap))
+            ImGui.Text("EFTH integration active: " .. bool(active))
+            ImGui.Text("Aiming: " .. bool(aiming))
+            ImGui.Text("Weapon: " .. (data and data.weapon or "unavailable"))
+            ImGui.Text("Stance: " .. (sway_state(sway, "get_body_state") or "unavailable"))
+            ImGui.Text("Weapon mounted: " .. bool(aiming and sway_state(sway, "wpn_mounted")))
+            ImGui.Text("Holding breath: " .. bool(sway and sway.holding_breath))
+            ImGui.Text("Original stance factor: " .. fmt(data and data.base))
+            ImGui.Text("Health-adjusted stance factor: " .. fmt(data and data.modified))
+            ImGui.Text("Final camera power is private to Weapon Sway 1.11")
+        end
+    end
+    ImGui.End()
+end
+
+local function render_menu()
+    if ImGui.MenuItem("EFTH Weapon Sway Debug", nil, visible, true) then
+        visible = not visible
+    end
+end
+
+local function render_main()
+    if visible then render_window() end
+end
+
+function imgui_on_render(name)
+    if name == "Mods" then render_menu()
+    elseif name == "Main" then render_main() end
+end
+
+function on_game_start()
+    visible = false
+    if not registered then
+        if ImGui and ImGui.Groups and ImGui.Groups.Widget then
+            ImGui.Groups.Widget("Mods", render_menu)
+            ImGui.Groups.Widget("Main", render_main)
+        else
+            RegisterScriptCallback("imgui_on_render", imgui_on_render)
+        end
+        registered = true
+    end
+end

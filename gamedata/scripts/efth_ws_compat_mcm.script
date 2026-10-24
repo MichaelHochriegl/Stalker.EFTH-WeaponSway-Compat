@@ -1,102 +1,71 @@
--- If you don't use MCM, change your defaults from here.
+-- Settings and presets. Existing `efth_patch` MCM key is retained for saved settings.
 local defaults = {
-    -- Base mod settings
-	["efth_patch"] = true,
-	["debugx"] = false,
-	
-	-- Health thresholds (percentages as decimals)
-    ["health_excellent_threshold"] = 0.9,
-    ["health_good_threshold"] = 0.7,
-    ["health_moderate_threshold"] = 0.5,
-    ["health_heavy_threshold"] = 0.3,
-    
-    -- Base sway power values for different health states
-    ["sway_excellent_min"] = 0.2,
-    ["sway_excellent_multiplier"] = 0.5,
-    ["sway_good_base"] = 0.25,
-    ["sway_good_multiplier"] = 1.75,
-    ["sway_moderate_base"] = 0.6,
-    ["sway_moderate_multiplier"] = 3.0,
-    ["sway_heavy_base"] = 1.2,
-    ["sway_heavy_multiplier"] = 4.0,
-    ["sway_severe_base"] = 2.0,
-    ["sway_severe_multiplier"] = 3.33,
-    ["sway_destroyed_power"] = 3.5,
-    
-    -- Asymmetry and destruction penalties
-    ["asymmetry_multiplier"] = 0.3,
-    ["one_arm_destroyed_mult"] = 1.2,
-    ["both_arms_destroyed_mult"] = 1.4,
-    ["one_arm_fracture_mult"] = 1.15,
-    ["both_arms_fracture_mult"] = 1.3,
-    
-    -- Painkiller multiplier
-    ["painkiller_sway_mult"] = 0.25
-
+    efth_patch = true, balance_preset = 2, overall_strength = 1,
+    smooth_transitions = true,
+    damage_grace = 0.15, acute_strength = 3.0, recovery_strength = 0.30,
+    destroyed_strength = 1.50, fracture_strength = 0.30, painkiller_relief = 0.75,
+    max_multiplier = 6.0, injury_smoothing = 0.15, recovery_smoothing = 0.6,
 }
 
+local presets = {
+    [1] = { damage_grace = 0.20, acute_strength = 1.8, recovery_strength = 0.20,
+        destroyed_strength = 0.8, fracture_strength = 0.15,
+        painkiller_relief = 0.85, max_multiplier = 3.8 },
+    [2] = defaults,
+    [3] = { damage_grace = 0.10, acute_strength = 4.5, recovery_strength = 0.40,
+        destroyed_strength = 2.5, fracture_strength = 0.45,
+        painkiller_relief = 0.60, max_multiplier = 8.5 },
+}
+
+local cached
+
 function get_config(key)
-	if ui_mcm then return ui_mcm.get("efth_ws_compat/"..key) else return defaults[key] end
+    local fallback = defaults[key]
+    if not ui_mcm then return fallback end
+    local value = ui_mcm.get("efth_ws_compat/" .. key)
+    if value == nil then return fallback end
+    return value
+end
+
+function invalidate()
+    cached = nil
+end
+
+function get_settings()
+    if cached then return cached end
+    local settings = {
+        enabled = get_config("efth_patch"),
+        overall_strength = get_config("overall_strength"),
+        smooth_transitions = get_config("smooth_transitions"),
+        injury_smoothing = get_config("injury_smoothing"),
+        recovery_smoothing = get_config("recovery_smoothing"),
+    }
+    local preset = presets[tonumber(get_config("balance_preset"))]
+    for _, key in ipairs({ "damage_grace", "acute_strength", "recovery_strength",
+        "destroyed_strength", "fracture_strength", "painkiller_relief", "max_multiplier" }) do
+        settings[key] = preset and preset[key] or get_config(key)
+    end
+    cached = settings
+    return settings
 end
 
 function on_mcm_load()
-	op = { id= "efth_ws_compat",sh=true ,gr={
-			{id = "efth_patch", type = "check", val = 1, def = true},
-			{id="divider", type="line" },
-            
-            -- Health Thresholds Section
-            {id = "health_excellent_threshold", type = "track", val = 2, min=0.8, max=1.0, step=0.01, def = 0.9},
-            {id = "health_good_threshold", type = "track", val = 2, min=0.6, max=0.9, step=0.01, def = 0.7},
-            {id = "health_moderate_threshold", type = "track", val = 2, min=0.4, max=0.7, step=0.01, def = 0.5},
-            {id = "health_heavy_threshold", type = "track", val = 2, min=0.2, max=0.5, step=0.01, def = 0.3},
-            {id="divider", type="line" },
-            
-            -- Excellent Health (90%+) Sway Settings
-            {id = "sway_excellent_min", type = "track", val = 2, min=0.1, max=0.5, step=0.01, def = 0.2},
-            {id = "sway_excellent_multiplier", type = "track", val = 2, min=0.1, max=2.0, step=0.1, def = 0.5},
-            {id="divider", type="line" },
-            
-            -- Good Health (70-90%) Sway Settings
-            {id = "sway_good_base", type = "track", val = 2, min=0.1, max=1.0, step=0.01, def = 0.25},
-            {id = "sway_good_multiplier", type = "track", val = 2, min=0.5, max=5.0, step=0.25, def = 1.75},
-            {id="divider", type="line" },
-            
-            -- Moderate Health (50-70%) Sway Settings
-            {id = "sway_moderate_base", type = "track", val = 2, min=0.3, max=1.5, step=0.1, def = 0.6},
-            {id = "sway_moderate_multiplier", type = "track", val = 2, min=1.0, max=6.0, step=0.5, def = 3.0},
-            {id="divider", type="line" },
-            
-            -- Heavy Damage (30-50%) Sway Settings
-            {id = "sway_heavy_base", type = "track", val = 2, min=0.5, max=2.5, step=0.1, def = 1.2},
-            {id = "sway_heavy_multiplier", type = "track", val = 2, min=2.0, max=8.0, step=0.5, def = 4.0},
-            {id="divider", type="line" },
-            
-            -- Severe Damage (1-30%) Sway Settings
-            {id = "sway_severe_base", type = "track", val = 2, min=1.0, max=4.0, step=0.1, def = 2.0},
-            {id = "sway_severe_multiplier", type = "track", val = 2, min=2.0, max=8.0, step=0.33, def = 3.33},
-            {id="divider", type="line" },
-            
-            -- Destroyed Limbs Sway Settings
-            {id = "sway_destroyed_power", type = "track", val = 2, min=2.0, max=6.0, step=0.1, def = 3.5},
-            {id="divider", type="line" },
-            
-            -- Penalty Multipliers
-            {id = "asymmetry_multiplier", type = "track", val = 2, min=0.0, max=1.0, step=0.05, def = 0.3},
-            {id = "one_arm_destroyed_mult", type = "track", val = 2, min=1.0, max=2.0, step=0.05, def = 1.2},
-            {id = "both_arms_destroyed_mult", type = "track", val = 2, min=1.0, max=2.5, step=0.05, def = 1.4},
-            {id = "one_arm_fracture_mult", type = "track", val = 2, min=1.0, max=2.5, step=0.01, def = 1.15},
-            {id = "both_arms_fracture_mult", type = "track", val = 2, min=1.0, max=2.5, step=0.01, def = 1.3},
-            
-            -- Painkiller Sway Multiplier
-            {id="divider", type="line" },
-            {id = "painkiller_sway_mult", type = "track", val = 2, min=0.0, max=1.0, step=0.01, def = 0.25},
-
-            -- Debug Stuff
-			{id="divider", type="line" },
-			{id = "debugx", type = "check", val = 1, def = false},
-
-		}
-	}
-
-	return op
+    return { id = "efth_ws_compat", sh = true, gr = {
+        {id = "general", type = "slide", link = "ui_options_slider_player", text = "ui_mcm_efth_ws_compat_general", size = {512, 40}, spacing = 12},
+        {id = "efth_patch", type = "check", val = 1, def = defaults.efth_patch},
+        {id = "balance_preset", type = "list", val = 2, def = defaults.balance_preset,
+            content = {{1, "Relaxed"}, {2, "Balanced"}, {3, "Hardcore"}, {4, "Custom"}}, no_str = true},
+        {id = "overall_strength", type = "track", val = 2, min = 0, max = 2, step = 0.05, def = defaults.overall_strength},
+        {id = "smooth_transitions", type = "check", val = 1, def = defaults.smooth_transitions},
+        {id = "advanced", type = "slide", link = "ui_options_slider_player", text = "ui_mcm_efth_ws_compat_advanced", size = {512, 40}, spacing = 12},
+        {id = "damage_grace", type = "track", val = 2, min = 0, max = 0.5, step = 0.01, def = defaults.damage_grace},
+        {id = "acute_strength", type = "track", val = 2, min = 0, max = 8, step = 0.05, def = defaults.acute_strength},
+        {id = "recovery_strength", type = "track", val = 2, min = 0, max = 1, step = 0.01, def = defaults.recovery_strength},
+        {id = "destroyed_strength", type = "track", val = 2, min = 0, max = 5, step = 0.05, def = defaults.destroyed_strength},
+        {id = "fracture_strength", type = "track", val = 2, min = 0, max = 1, step = 0.01, def = defaults.fracture_strength},
+        {id = "painkiller_relief", type = "track", val = 2, min = 0, max = 1, step = 0.05, def = defaults.painkiller_relief},
+        {id = "max_multiplier", type = "track", val = 2, min = 1, max = 15, step = 0.1, def = defaults.max_multiplier},
+        {id = "injury_smoothing", type = "track", val = 2, min = 0, max = 2, step = 0.05, def = defaults.injury_smoothing},
+        {id = "recovery_smoothing", type = "track", val = 2, min = 0, max = 3, step = 0.05, def = defaults.recovery_smoothing},
+    }}
 end
